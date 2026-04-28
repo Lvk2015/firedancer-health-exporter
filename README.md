@@ -31,6 +31,7 @@ pip install firedancer-health-exporter
 ```bash
 git clone https://github.com/Lvk2015/firedancer-health-exporter.git
 cd firedancer-health-exporter
+python3 -m venv .venv && source .venv/bin/activate  # recommended: avoid conflicts with system Python
 pip install .
 ```
 
@@ -45,11 +46,15 @@ pip install .
 ## Quick Start
 
 ```bash
-# Install dependency
-pip install prometheus_client
+git clone https://github.com/Lvk2015/firedancer-health-exporter.git
+cd firedancer-health-exporter
+pip install .
 
-# Run the exporter (log metrics only)
+# Run the exporter (log metrics only, default port 9100)
 firedancer-exporter
+
+# If port 9100 is already taken (e.g. by node_exporter), use --port:
+firedancer-exporter --port 9101
 
 # Metrics available at:
 curl http://localhost:9100/metrics | grep firedancer_

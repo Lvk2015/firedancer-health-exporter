@@ -5,24 +5,18 @@ import logging
 import sys
 import threading
 import time
+import types
 
 from .log_parser import fetch_logs, parse_logs
 from .metrics import (
-    g_active_stake,
-    g_commission,
-    g_credits,
-    g_epoch_completed,
     g_last_log_scrape_ts,
-    g_last_rpc_scrape_ts,
     g_log_lines,
     g_log_scrape_duration,
     g_log_scrape_errors,
     g_metrics_errors,
-    g_rpc_scrape_duration,
-    g_rpc_scrape_errors,
-    g_skip_rate,
     g_too_few_ticks,
     g_critical_errors,
+    make_rpc_gauges,
 )
 from .rpc_client import get_epoch_data, get_validator_data
 
@@ -33,7 +27,6 @@ DEFAULT_VOTE_ACCOUNT = ""
 DEFAULT_IDENTITY = ""
 
 _log_errors = 0
-_rpc_errors = 0
 
 
 def scrape_logs() -> None:
@@ -62,15 +55,14 @@ def scrape_logs() -> None:
         g_log_scrape_duration.set(time.monotonic() - t0)
 
 
-def scrape_rpc(rpc_url: str, vote_account: str, identity: str) -> None:
-    global _rpc_errors
+def scrape_rpc(rpc_url: str, vote_account: str, identity: str, gauges: types.SimpleNamespace) -> None:
     t0 = time.monotonic()
     try:
         vdata = get_validator_data(rpc_url, vote_account, identity)
-        g_active_stake.set(vdata["active_stake_sol"])
-        g_skip_rate.set(vdata["skip_rate_percent"])
-        g_credits.set(vdata["credits"])
-        g_commission.set(vdata["commission"])
+        gauges.active_stake.set(vdata["active_stake_sol"])
+        gauges.skip_rate.set(vdata["skip_rate_percent"])
+        gauges.credits.set(vdata["credits"])
+        gauges.commission.set(vdata["commission"])
         logging.info(
             "rpc validator | stake=%.2f SOL skip=%.2f%% credits=%d commission=%d%%",
             vdata["active_stake_sol"],
@@ -80,28 +72,32 @@ def scrape_rpc(rpc_url: str, vote_account: str, identity: str) -> None:
         )
 
         edata = get_epoch_data(rpc_url)
-        g_epoch_completed.set(edata["completed_percent"])
+        gauges.epoch_completed.set(edata["completed_percent"])
         logging.info(
             "rpc epoch | epoch=%d completed=%.2f%%",
             edata["epoch"],
             edata["completed_percent"],
         )
-        g_last_rpc_scrape_ts.set(time.time())
+        gauges.last_scrape_ts.set(time.time())
     except Exception as exc:
-        _rpc_errors += 1
-        g_rpc_scrape_errors.set(_rpc_errors)
+        gauges._error_count += 1
+        gauges.scrape_errors.set(gauges._error_count)
         logging.error("rpc scrape failed: %s", exc)
     finally:
-        g_rpc_scrape_duration.set(time.monotonic() - t0)
+        gauges.scrape_duration.set(time.monotonic() - t0)
 
 
 def collector_loop(
-    interval: int, rpc_url: str | None, vote_account: str, identity: str
+    interval: int,
+    rpc_url: str | None,
+    vote_account: str,
+    identity: str,
+    rpc_gauges: types.SimpleNamespace | None,
 ) -> None:
     while True:
         scrape_logs()
-        if rpc_url:
-            scrape_rpc(rpc_url, vote_account, identity)
+        if rpc_url and rpc_gauges is not None:
+            scrape_rpc(rpc_url, vote_account, identity, rpc_gauges)
         time.sleep(interval)
 
 
@@ -146,6 +142,7 @@ def main() -> None:
     )
 
     rpc_url = args.rpc_url if args.enable_rpc_metrics else None
+    rpc_gauges = make_rpc_gauges() if args.enable_rpc_metrics else None
 
     logging.info("Starting Firedancer Health Exporter on :%d", args.port)
     if rpc_url:
@@ -156,12 +153,12 @@ def main() -> None:
     start_http_server(args.port)
 
     scrape_logs()
-    if rpc_url:
-        scrape_rpc(rpc_url, args.vote_account, args.identity)
+    if rpc_url and rpc_gauges is not None:
+        scrape_rpc(rpc_url, args.vote_account, args.identity, rpc_gauges)
 
     t = threading.Thread(
         target=collector_loop,
-        args=(args.interval, rpc_url, args.vote_account, args.identity),
+        args=(args.interval, rpc_url, args.vote_account, args.identity, rpc_gauges),
         daemon=True,
     )
     t.start()
