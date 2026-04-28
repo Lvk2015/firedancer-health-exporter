@@ -128,6 +128,38 @@ See [`examples/prometheus.yml`](examples/prometheus.yml) for a complete example.
 
 ---
 
+## Grafana Setup
+
+A ready-to-import Grafana 11 dashboard is provided at [`examples/grafana-dashboard.json`](examples/grafana-dashboard.json).
+
+### Panels
+
+| # | Panel | Type | Source |
+|---|-------|------|--------|
+| 1 | **TooFewTicks Rate (last 24 h)** | Time series | Log |
+| 2 | **Critical Errors Count** | Stat (red on any error) | Log |
+| 3 | **Skip Rate %** | Gauge (0–100 %) | RPC |
+| 4 | **Active Stake (SOL)** | Stat | RPC |
+| 5 | **Epoch Progress %** | Bar gauge | RPC |
+| 6 | **Credits Over Time** | Time series | RPC |
+
+Panels 3–6 require `--enable-rpc-metrics`. They will show "No data" when RPC metrics are disabled.
+
+### Import steps
+
+1. In Grafana, go to **Dashboards → Import**.
+2. Click **Upload dashboard JSON file** and select `examples/grafana-dashboard.json`.
+3. In the **Prometheus** dropdown, choose your Prometheus datasource.
+4. Click **Import**.
+
+The dashboard uses the `$DS_PROMETHEUS` variable so the datasource is selected at import time — no manual panel editing needed.
+
+### Dashboard time range & refresh
+
+The default time range is **last 24 hours** with a **1-minute** auto-refresh, matching the exporter's 24 h log window and 60 s scrape interval. Both can be changed from the Grafana toolbar without editing the JSON.
+
+---
+
 ## Grafana Alert Examples
 
 ```yaml
