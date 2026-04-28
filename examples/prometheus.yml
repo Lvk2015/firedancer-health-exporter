@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Firedancer Health Exporter
+  - job_name: firedancer
+    static_configs:
+      - targets:
+          - '<validator-ip>:9100'
+        labels:
+          validator: my-mainnet-node
+    scrape_interval: 60s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+
+  # Example: multiple validators
+  # - job_name: firedancer_fleet
+  #   static_configs:
+  #     - targets:
+  #         - 'validator-1.example.com:9100'
+  #         - 'validator-2.example.com:9100'
+  #   scrape_interval: 60s
