@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Prometheus exporter for Firedancer Solana validator — log-based and RPC metrics"
 readme = "README.md"
 license = { file = "LICENSE" }
+authors = [{ name = "Antipov", email = "alex78.kone@gmail.com" }]
 requires-python = ">=3.10"
 keywords = ["solana", "firedancer", "prometheus", "validator", "monitoring"]
 classifiers = [
@@ -35,6 +36,11 @@ dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
 ]
+
+[project.urls]
+Homepage   = "https://github.com/Lvk2015/firedancer-health-exporter"
+Repository = "https://github.com/Lvk2015/firedancer-health-exporter"
+Issues     = "https://github.com/Lvk2015/firedancer-health-exporter/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

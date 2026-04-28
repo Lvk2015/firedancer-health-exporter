@@ -1,6 +1,6 @@
 [Unit]
 Description=Firedancer Health Prometheus Exporter
-Documentation=https://github.com/antipov/firedancer-health-exporter
+Documentation=https://github.com/Lvk2015/firedancer-health-exporter
 After=network.target firedancer.service
 Wants=firedancer.service
 

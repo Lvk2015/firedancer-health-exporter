@@ -30,5 +30,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/` layout with clean module separation: `metrics`, `log_parser`, `rpc_client`, `exporter`, `cli`
 - Full test suite (pytest) with coverage for log parser and RPC client
 
-[Unreleased]: https://github.com/antipov/firedancer-health-exporter/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/antipov/firedancer-health-exporter/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Lvk2015/firedancer-health-exporter/releases/tag/v0.1.0

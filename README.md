@@ -29,7 +29,7 @@ pip install firedancer-health-exporter
 ### From source
 
 ```bash
-git clone https://github.com/antipov/firedancer-health-exporter.git
+git clone https://github.com/Lvk2015/firedancer-health-exporter.git
 cd firedancer-health-exporter
 pip install .
 ```
@@ -182,7 +182,7 @@ curl -s http://localhost:9100/metrics | grep firedancer_
 ## Development
 
 ```bash
-git clone https://github.com/antipov/firedancer-health-exporter.git
+git clone https://github.com/Lvk2015/firedancer-health-exporter.git
 cd firedancer-health-exporter
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"

@@ -11,8 +11,8 @@ from firedancer_health_exporter.rpc_client import (
     get_validator_data,
 )
 
-VOTE = "H4EKYZB41o4iKGrkYF2Xy2rqamwSrvvacsBnYb5JUHB4"
-IDENTITY = "29ycd3N5WaikQ2SD3JzsyDunRHWssNfW9BvtCtcHNUYo"
+VOTE = "VoteAccountTest11111111111111111111111111111"
+IDENTITY = "ValidatorIdentityTest1111111111111111111111"
 RPC = "http://127.0.0.1:8899"
 
 _VALIDATOR_PAYLOAD = {

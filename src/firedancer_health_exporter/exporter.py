@@ -29,8 +29,8 @@ from .rpc_client import get_epoch_data, get_validator_data
 DEFAULT_PORT = 9100
 DEFAULT_SCRAPE_SECS = 60
 DEFAULT_RPC_URL = "http://127.0.0.1:8899"
-DEFAULT_VOTE_ACCOUNT = "H4EKYZB41o4iKGrkYF2Xy2rqamwSrvvacsBnYb5JUHB4"
-DEFAULT_IDENTITY = "29ycd3N5WaikQ2SD3JzsyDunRHWssNfW9BvtCtcHNUYo"
+DEFAULT_VOTE_ACCOUNT = ""
+DEFAULT_IDENTITY = ""
 
 _log_errors = 0
 _rpc_errors = 0
@@ -130,7 +130,14 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     from prometheus_client import start_http_server
 
-    args = build_parser().parse_args()
+    parser = build_parser()
+    args = parser.parse_args()
+
+    if args.enable_rpc_metrics:
+        if not args.vote_account:
+            parser.error("--vote-account is required when --enable-rpc-metrics is set")
+        if not args.identity:
+            parser.error("--identity is required when --enable-rpc-metrics is set")
 
     logging.basicConfig(
         level=logging.INFO,
