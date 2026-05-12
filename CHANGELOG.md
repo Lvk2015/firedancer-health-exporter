@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-05-12
+
+### Fixed
+
+- **RPC URL logging**: log now outputs only the hostname (`netloc` via `urllib.parse.urlparse`) instead of the full URL, avoiding accidental exposure of credentials or internal addresses.
+- **CLI validation**: `--interval` now requires a value >= 10 seconds; passing a lower value produces a clear error message instead of silently allowing dangerously short scrape intervals.
+
 ## [0.1.0] - 2026-04-28
 
 ### Added
@@ -30,5 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/` layout with clean module separation: `metrics`, `log_parser`, `rpc_client`, `exporter`, `cli`
 - Full test suite (pytest) with coverage for log parser and RPC client
 
-[Unreleased]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.1.0...v0.1.2
 [0.1.0]: https://github.com/Lvk2015/firedancer-health-exporter/releases/tag/v0.1.0

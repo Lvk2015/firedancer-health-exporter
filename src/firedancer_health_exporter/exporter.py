@@ -6,6 +6,7 @@ import sys
 import threading
 import time
 import types
+from urllib.parse import urlparse
 
 from .log_parser import fetch_logs, parse_logs
 from .metrics import (
@@ -129,6 +130,9 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
+    if args.interval < 10:
+        parser.error(f"--interval must be >= 10 seconds (got {args.interval})")
+
     if args.enable_rpc_metrics:
         if not args.vote_account:
             parser.error("--vote-account is required when --enable-rpc-metrics is set")
@@ -146,7 +150,7 @@ def main() -> None:
 
     logging.info("Starting Firedancer Health Exporter on :%d", args.port)
     if rpc_url:
-        logging.info("RPC metrics enabled | url=%s vote=%s", rpc_url, args.vote_account)
+        logging.info("RPC metrics enabled | host=%s vote=%s", urlparse(rpc_url).netloc, args.vote_account)
     else:
         logging.info("RPC metrics disabled (pass --enable-rpc-metrics to enable)")
 
