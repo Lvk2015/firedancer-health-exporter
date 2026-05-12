@@ -28,10 +28,24 @@ pip install firedancer-health-exporter
 
 ### From source
 
+#### Option A — Direct install (pip 21+)
+
 ```bash
 git clone https://github.com/Lvk2015/firedancer-health-exporter.git
 cd firedancer-health-exporter
-python3 -m venv .venv && source .venv/bin/activate  # recommended: avoid conflicts with system Python
+pip install .
+```
+
+#### Option B — Virtual environment (Ubuntu 22.04+, pip 22.x)
+
+If `pip install -e .` fails with `build_editable hook not found`, use a virtualenv with an updated pip:
+
+```bash
+git clone https://github.com/Lvk2015/firedancer-health-exporter.git
+cd firedancer-health-exporter
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
 pip install .
 ```
 
@@ -40,6 +54,7 @@ pip install .
 - Linux with systemd (`journalctl`)
 - Read access to the Firedancer journal (add your user to the `systemd-journal` group)
 - `prometheus_client >= 0.19`
+- `python3-venv` *(optional — required for Option B, Ubuntu 22.04+)*
 
 ---
 
@@ -213,6 +228,11 @@ sudo systemctl enable --now firedancer-health-exporter
 sudo systemctl status firedancer-health-exporter
 curl -s http://localhost:9100/metrics | grep firedancer_
 ```
+
+> **Note (virtualenv):** If installed via Option B (venv), update `ExecStart` in the service file:
+> ```
+> ExecStart=/opt/firedancer-health-exporter/venv/bin/firedancer-exporter
+> ```
 
 ---
 
