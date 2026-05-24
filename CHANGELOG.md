@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-24
+
+### Added
+
+- **`firedancer-analyze --full`**: rich diagnostic report with per-metric explanations, normal-range guidance, and actionable recommendations. Works with or without RPC access.
+- **`firedancer-analyze --lang ru`**: full Russian language support for all report text (`--lang en` remains the default).
+- **Emoji status indicators** across the full report: 🟢 healthy, 🟡 attention, 🔴 action required — meaningful thresholds per metric:
+  - Skip rate: < 1% 🟢 / 1–5% 🟡 / > 5% 🔴
+  - TooFewTicks (24 h): < 100 🟢 / 100–500 🟡 / > 500 🔴
+  - Commission: 0% 🟢 / > 0% 🟡
+  - Delinquent: no 🟢 / yes 🔴
+- **`--rpc-url`, `--vote-account`, `--identity`** flags on `firedancer-analyze` for optional on-demand RPC metric fetch (stake, skip rate, commission, delinquent status, version).
+- **`src/firedancer_health_exporter/reporter.py`**: standalone report-rendering module (testable, language-agnostic).
+- **`src/firedancer_health_exporter/i18n.py`**: all user-facing strings in EN and RU; easy to extend with additional languages.
+- `rpc_client.get_validator_data` now returns `delinquent` (bool) and `version` (str) fields.
+
 ## [0.1.2] - 2026-05-12
 
 ### Fixed
@@ -37,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/` layout with clean module separation: `metrics`, `log_parser`, `rpc_client`, `exporter`, `cli`
 - Full test suite (pytest) with coverage for log parser and RPC client
 
-[Unreleased]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.1.2...v0.3.0
 [0.1.2]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.1.0...v0.1.2
 [0.1.0]: https://github.com/Lvk2015/firedancer-health-exporter/releases/tag/v0.1.0

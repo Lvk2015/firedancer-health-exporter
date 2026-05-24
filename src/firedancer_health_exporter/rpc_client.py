@@ -43,6 +43,8 @@ def get_validator_data(rpc_url: str, vote_account: str, identity: str) -> dict:
         "skip_rate_percent": (validator.get("skipRate") or 0.0) * 100,
         "credits": validator.get("epochCredits", 0),
         "commission": validator["commission"],
+        "delinquent": validator.get("delinquent", False),
+        "version": validator.get("version", ""),
     }
 
 

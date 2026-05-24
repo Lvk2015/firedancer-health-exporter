@@ -1,5 +1,6 @@
 """CLI diagnostic tool — one-shot colored report from journald logs."""
 
+import argparse
 import os
 import sys
 from collections import defaultdict
@@ -141,11 +142,85 @@ def print_report(data: dict) -> None:
     print()
 
 
-def main() -> None:
+def _build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="firedancer-analyze",
+        description="Firedancer node diagnostic tool",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    p.add_argument(
+        "--full",
+        action="store_true",
+        help="Show detailed report with explanations, recommendations, and status indicators",
+    )
+    p.add_argument(
+        "--lang",
+        choices=["en", "ru"],
+        default="en",
+        metavar="LANG",
+        help="Report language: en or ru (default: en)",
+    )
+    rpc = p.add_argument_group("RPC metrics (used with --full)")
+    rpc.add_argument(
+        "--rpc-url",
+        default="http://127.0.0.1:8899",
+        help="Solana RPC endpoint URL",
+    )
+    rpc.add_argument(
+        "--vote-account",
+        default="",
+        metavar="PUBKEY",
+        help="Validator vote account public key",
+    )
+    rpc.add_argument(
+        "--identity",
+        default="",
+        metavar="PUBKEY",
+        help="Validator identity public key",
+    )
+    return p
+
+
+def _run_full_report(args: argparse.Namespace) -> None:
+    from .reporter import render_full_report
+    from .rpc_client import get_validator_data
+
+    lang = args.lang
+
     print(_color("Fetching Firedancer logs (last 24 h)…", C.DIM))
     lines = fetch_logs()
-    if not lines:
-        print(_color("No Firedancer log entries found in the last 24 hours.", C.YELLOW))
-        sys.exit(0)
-    data = parse_logs(lines)
-    print_report(data)
+    if lines:
+        log_data = parse_logs(lines)
+    else:
+        log_data = {"total": 0, "too_few_ticks": 0, "metrics_errors": 0, "critical": [], "by_hour": {}}
+
+    rpc_data = None
+    if args.vote_account or args.identity:
+        try:
+            rpc_data = get_validator_data(args.rpc_url, args.vote_account, args.identity)
+        except Exception as exc:
+            print(_color(f"Warning: RPC fetch failed ({exc})", C.YELLOW))
+
+    report = render_full_report(
+        lang=lang,
+        log_data=log_data,
+        rpc_data=rpc_data,
+        identity=args.identity or args.vote_account,
+    )
+    print(report)
+
+
+def main() -> None:
+    parser = _build_parser()
+    args = parser.parse_args()
+
+    if args.full:
+        _run_full_report(args)
+    else:
+        print(_color("Fetching Firedancer logs (last 24 h)…", C.DIM))
+        lines = fetch_logs()
+        if not lines:
+            print(_color("No Firedancer log entries found in the last 24 hours.", C.YELLOW))
+            sys.exit(0)
+        data = parse_logs(lines)
+        print_report(data)
