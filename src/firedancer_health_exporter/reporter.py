@@ -25,10 +25,26 @@ def _level_commission(pct: int) -> str:
     return "ok" if pct == 0 else "warn"
 
 
-def _level_too_few_ticks(count: int) -> str:
-    if count < 100:
+def _level_too_few_ticks(per_hour: float) -> str:
+    if per_hour < 100:
         return "ok"
-    if count <= 500:
+    if per_hour <= 500:
+        return "warn"
+    return "crit"
+
+
+def _level_identity_balance(sol: float) -> str:
+    if sol > 1.0:
+        return "ok"
+    if sol >= 0.5:
+        return "warn"
+    return "crit"
+
+
+def _level_block_skip_rate(pct: float) -> str:
+    if pct < 5.0:
+        return "ok"
+    if pct <= 10.0:
         return "warn"
     return "crit"
 
@@ -149,6 +165,55 @@ def render_full_report(
             if del_lv != "ok":
                 recs.append(t(lang, f"delinquent_rec_{del_lv}"))
 
+        # Identity balance
+        if "identity_balance_sol" in rpc_data:
+            id_bal = rpc_data["identity_balance_sol"]
+            id_bal_lv = _level_identity_balance(id_bal)
+            levels.append(id_bal_lv)
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "identity_balance_label"),
+                    t(lang, "identity_balance_val", val=id_bal),
+                    id_bal_lv,
+                    f"identity_balance_{id_bal_lv}",
+                    "identity_balance_info", "identity_balance_norm",
+                )
+            )
+            if id_bal_lv != "ok":
+                recs.append(t(lang, f"identity_balance_rec_{id_bal_lv}"))
+
+        # Vote account balance
+        if "vote_balance_sol" in rpc_data:
+            vote_bal = rpc_data["vote_balance_sol"]
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "vote_balance_label"),
+                    t(lang, "vote_balance_val", val=vote_bal),
+                    "ok",
+                    "vote_balance_ok",
+                    "vote_balance_info", "vote_balance_norm",
+                )
+            )
+
+        # Block production (current epoch)
+        if "block_production" in rpc_data:
+            bp = rpc_data["block_production"]
+            bp_lv = _level_block_skip_rate(bp["skip_rate"])
+            levels.append(bp_lv)
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "block_prod_label"),
+                    t(lang, "block_prod_val",
+                      assigned=bp["assigned"], produced=bp["produced"],
+                      skipped=bp["skipped"], skip_rate=bp["skip_rate"]),
+                    bp_lv,
+                    f"block_prod_{bp_lv}",
+                    "block_prod_info", "block_prod_norm",
+                )
+            )
+            if bp_lv != "ok":
+                recs.append(t(lang, f"block_prod_rec_{bp_lv}"))
+
         # Version from rpc_data (if present)
         if not version and rpc_data.get("version"):
             version = rpc_data["version"]
@@ -157,12 +222,13 @@ def render_full_report(
 
     # ── Log metrics ───────────────────────────────────────────────────────────
     tft = log_data.get("too_few_ticks", 0)
-    tft_lv = _level_too_few_ticks(tft)
+    tft_per_hour = tft / 24
+    tft_lv = _level_too_few_ticks(tft_per_hour)
     levels.append(tft_lv)
     metric_sections.append(
         _metric_block(
             lang, t(lang, "too_few_ticks_label"),
-            t(lang, "too_few_ticks_val", val=tft),
+            t(lang, "too_few_ticks_val", val=tft, per_hour=tft_per_hour),
             tft_lv,
             f"too_few_ticks_{tft_lv}",
             "too_few_ticks_info", "too_few_ticks_norm",

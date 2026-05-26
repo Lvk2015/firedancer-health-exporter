@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-05-26
+
+### Fixed
+
+- **TooFewTicks threshold bug**: thresholds now apply to the per-hour average (`total / 24`) instead of the raw 24 h sum. Display shows both numbers: `505 total 24h (~21/hr)`.
+
+### Added
+
+- **Node balance** (`--identity`): identity keypair SOL balance with thresholds — > 1 SOL 🟢, 0.5–1 SOL 🟡, < 0.5 SOL 🔴. Low balance triggers a recommendation.
+- **Vote account balance** (`--vote-account`): accumulated rewards on the vote account, shown as an informational metric.
+- **Block production (current epoch)** (`--identity`): assigned / produced / skipped slot counts with skip rate — < 5% 🟢, 5–10% 🟡, > 10% 🔴.
+- `rpc_client.get_balance(rpc_url, pubkey)` — returns SOL balance for any pubkey.
+- `rpc_client.get_block_production(rpc_url, identity)` — returns epoch block production stats filtered by identity.
+- i18n strings (EN + RU) for all new metrics.
+
 ## [0.3.0] - 2026-05-24
 
 ### Added
@@ -53,7 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/` layout with clean module separation: `metrics`, `log_parser`, `rpc_client`, `exporter`, `cli`
 - Full test suite (pytest) with coverage for log parser and RPC client
 
-[Unreleased]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.1.2...v0.3.0
 [0.1.2]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.1.0...v0.1.2
 [0.1.0]: https://github.com/Lvk2015/firedancer-health-exporter/releases/tag/v0.1.0

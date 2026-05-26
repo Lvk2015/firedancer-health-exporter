@@ -183,7 +183,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def _run_full_report(args: argparse.Namespace) -> None:
     from .reporter import render_full_report
-    from .rpc_client import get_validator_data
+    from .rpc_client import get_validator_data, get_balance, get_block_production
 
     lang = args.lang
 
@@ -200,6 +200,23 @@ def _run_full_report(args: argparse.Namespace) -> None:
             rpc_data = get_validator_data(args.rpc_url, args.vote_account, args.identity)
         except Exception as exc:
             print(_color(f"Warning: RPC fetch failed ({exc})", C.YELLOW))
+
+    if rpc_data is not None:
+        if args.identity:
+            try:
+                rpc_data["identity_balance_sol"] = get_balance(args.rpc_url, args.identity)
+            except Exception as exc:
+                print(_color(f"Warning: identity balance fetch failed ({exc})", C.YELLOW))
+        if args.vote_account:
+            try:
+                rpc_data["vote_balance_sol"] = get_balance(args.rpc_url, args.vote_account)
+            except Exception as exc:
+                print(_color(f"Warning: vote account balance fetch failed ({exc})", C.YELLOW))
+        if args.identity:
+            try:
+                rpc_data["block_production"] = get_block_production(args.rpc_url, args.identity)
+            except Exception as exc:
+                print(_color(f"Warning: block production fetch failed ({exc})", C.YELLOW))
 
     report = render_full_report(
         lang=lang,

@@ -55,3 +55,27 @@ def get_epoch_data(rpc_url: str) -> dict:
         "epoch": epoch["epoch"],
         "completed_percent": epoch["epochCompletedPercent"],
     }
+
+
+def get_balance(rpc_url: str, pubkey: str) -> float:
+    """Return balance in SOL for a pubkey (identity or vote account)."""
+    data = _run_solana(["balance", pubkey, "--url", rpc_url])
+    return data["lamports"] / LAMPORTS_PER_SOL
+
+
+def get_block_production(rpc_url: str, identity: str) -> dict:
+    """Return block production stats for the given identity in the current epoch."""
+    data = _run_solana(["block-production", "--url", rpc_url])
+    for leader in data.get("leaders", []):
+        if leader.get("identityPubkey") == identity:
+            assigned = leader["leaderSlots"]
+            produced = leader["blocksProduced"]
+            skipped = leader.get("skippedSlots", assigned - produced)
+            skip_rate = (skipped / assigned * 100) if assigned > 0 else 0.0
+            return {
+                "assigned": assigned,
+                "produced": produced,
+                "skipped": skipped,
+                "skip_rate": skip_rate,
+            }
+    raise RuntimeError(f"Identity {identity[:8]}… not found in block production data")
