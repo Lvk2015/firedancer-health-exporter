@@ -21,7 +21,7 @@ _VALIDATOR_PAYLOAD = {
             "voteAccountPubkey": VOTE,
             "identityPubkey": IDENTITY,
             "activatedStake": 100_000 * LAMPORTS_PER_SOL,
-            "skipRate": 0.05,
+            "skipRate": 5.0,
             "epochCredits": 42000,
             "commission": 5,
         }
