@@ -19,7 +19,7 @@ from .metrics import (
     g_critical_errors,
     make_rpc_gauges,
 )
-from .rpc_client import get_epoch_data, get_validator_data
+from .rpc_client import compute_vote_credits_metrics, get_epoch_data, get_validator_data
 
 DEFAULT_PORT = 9100
 DEFAULT_SCRAPE_SECS = 60
@@ -79,6 +79,20 @@ def scrape_rpc(rpc_url: str, vote_account: str, identity: str, gauges: types.Sim
             edata["epoch"],
             edata["completed_percent"],
         )
+
+        vc = compute_vote_credits_metrics(vdata, edata)
+        gauges.vote_credits_efficiency.set(vc["efficiency_percent"])
+        gauges.vote_credits_per_slot.set(vc["credits_per_slot"])
+        gauges.vote_credits_missed.set(vc["missed_credits"])
+        if "latency_slots" in vc:
+            gauges.vote_latency_slots.set(vc["latency_slots"])
+        logging.info(
+            "rpc vote_credits | efficiency=%.1f%% per_slot=%.2f missed=%d",
+            vc["efficiency_percent"],
+            vc["credits_per_slot"],
+            vc["missed_credits"],
+        )
+
         gauges.last_scrape_ts.set(time.time())
     except Exception as exc:
         gauges._error_count += 1

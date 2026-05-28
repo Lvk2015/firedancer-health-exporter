@@ -73,4 +73,20 @@ def make_rpc_gauges() -> types.SimpleNamespace:
             "firedancer_exporter_last_rpc_scrape_timestamp",
             "Unix timestamp of the last successful RPC scrape",
         ),
+        vote_credits_efficiency=Gauge(
+            "firedancer_vote_credits_efficiency_percent",
+            "Vote credits efficiency: epochCredits / (slotsElapsed × 16) × 100",
+        ),
+        vote_credits_per_slot=Gauge(
+            "firedancer_vote_credits_per_slot",
+            "Vote credits earned per slot elapsed in the current epoch (max 16)",
+        ),
+        vote_credits_missed=Gauge(
+            "firedancer_vote_credits_missed",
+            "Vote credits missed vs theoretical max in the current epoch",
+        ),
+        vote_latency_slots=Gauge(
+            "firedancer_vote_latency_slots",
+            "Voting latency in slots (absoluteSlot − lastVoteSlot)",
+        ),
     )

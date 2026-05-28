@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-28
+
+### Added
+
+- **TVC vote credit metrics** — four new Prometheus gauges derived from the existing `getVoteAccounts` RPC call (no extra RPC round-trips):
+  - `firedancer_vote_credits_efficiency_percent` — `epochCredits / (slotsElapsed × 16) × 100`; thresholds: > 98% 🟢, 95–98% 🟡, < 95% 🔴
+  - `firedancer_vote_credits_per_slot` — `epochCredits / epochSlotsElapsed`; thresholds: > 15 🟢, 13–15 🟡, < 13 🔴
+  - `firedancer_vote_credits_missed` — `maxEpochCredits − epochCredits` (absolute missed credits since epoch start)
+  - `firedancer_vote_latency_slots` — `absoluteSlot − lastVoteSlot`; only published when `lastVote` is present in the RPC response
+- **Vote Credits section in `firedancer-analyze --full`** — displays efficiency%, credits/slot (with emoji thresholds), missed credits count, and optional vote latency; full EN and RU i18n support
+- `rpc_client.compute_vote_credits_metrics(validator_data, epoch_data)` — pure function; easy to unit-test independently of RPC calls
+- `rpc_client.get_epoch_data` now also returns `slot_index`, `slots_in_epoch`, and `absolute_slot` fields
+
 ## [0.3.2] - 2026-05-26
 
 ### Fixed
@@ -74,7 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/` layout with clean module separation: `metrics`, `log_parser`, `rpc_client`, `exporter`, `cli`
 - Full test suite (pytest) with coverage for log parser and RPC client
 
-[Unreleased]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.1.2...v0.3.0

@@ -57,6 +57,22 @@ def _level_metrics_errors(count: int) -> str:
     return "ok" if count == 0 else "warn"
 
 
+def _level_credits_efficiency(pct: float) -> str:
+    if pct > 98.0:
+        return "ok"
+    if pct >= 95.0:
+        return "warn"
+    return "crit"
+
+
+def _level_credits_per_slot(cps: float) -> str:
+    if cps > 15.0:
+        return "ok"
+    if cps >= 13.0:
+        return "warn"
+    return "crit"
+
+
 def _overall_level(levels: list[str]) -> str:
     if "crit" in levels:
         return "crit"
@@ -213,6 +229,50 @@ def render_full_report(
             )
             if bp_lv != "ok":
                 recs.append(t(lang, f"block_prod_rec_{bp_lv}"))
+
+        # Vote Credits (TVC)
+        if "vote_credits" in rpc_data:
+            vc = rpc_data["vote_credits"]
+
+            eff = vc["efficiency_percent"]
+            eff_lv = _level_credits_efficiency(eff)
+            levels.append(eff_lv)
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "vc_efficiency_label"),
+                    t(lang, "vc_efficiency_val", val=eff),
+                    eff_lv,
+                    f"vc_efficiency_{eff_lv}",
+                    "vc_efficiency_info", "vc_efficiency_norm",
+                )
+            )
+            if eff_lv != "ok":
+                recs.append(t(lang, f"vc_efficiency_rec_{eff_lv}"))
+
+            cps = vc["credits_per_slot"]
+            cps_lv = _level_credits_per_slot(cps)
+            levels.append(cps_lv)
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "vc_per_slot_label"),
+                    t(lang, "vc_per_slot_val", val=cps),
+                    cps_lv,
+                    f"vc_per_slot_{cps_lv}",
+                    "vc_per_slot_info", "vc_per_slot_norm",
+                )
+            )
+
+            missed = vc["missed_credits"]
+            metric_sections.append([
+                f"  {t(lang, 'vc_missed_label')}: {t(lang, 'vc_missed_val', val=missed)} {EMOJI[eff_lv]}",
+                f"  ℹ {t(lang, 'vc_missed_info')}",
+            ])
+
+            if "latency_slots" in vc:
+                metric_sections.append([
+                    f"  {t(lang, 'vc_latency_label')}: {t(lang, 'vc_latency_val', val=vc['latency_slots'])}",
+                    f"  ℹ {t(lang, 'vc_latency_info')}",
+                ])
 
         # Version from rpc_data (if present)
         if not version and rpc_data.get("version"):

@@ -183,7 +183,13 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def _run_full_report(args: argparse.Namespace) -> None:
     from .reporter import render_full_report
-    from .rpc_client import get_validator_data, get_balance, get_block_production
+    from .rpc_client import (
+        compute_vote_credits_metrics,
+        get_balance,
+        get_block_production,
+        get_epoch_data,
+        get_validator_data,
+    )
 
     lang = args.lang
 
@@ -217,6 +223,12 @@ def _run_full_report(args: argparse.Namespace) -> None:
                 rpc_data["block_production"] = get_block_production(args.rpc_url, args.identity)
             except Exception as exc:
                 print(_color(f"Warning: block production fetch failed ({exc})", C.YELLOW))
+
+        try:
+            edata = get_epoch_data(args.rpc_url)
+            rpc_data["vote_credits"] = compute_vote_credits_metrics(rpc_data, edata)
+        except Exception as exc:
+            print(_color(f"Warning: vote credits fetch failed ({exc})", C.YELLOW))
 
     report = render_full_report(
         lang=lang,
