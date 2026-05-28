@@ -178,6 +178,12 @@ def _build_parser() -> argparse.ArgumentParser:
         metavar="PUBKEY",
         help="Validator identity public key",
     )
+    rpc.add_argument(
+        "--withdrawer",
+        default="",
+        metavar="PUBKEY",
+        help="Withdrawer account public key (optional)",
+    )
     return p
 
 
@@ -218,6 +224,11 @@ def _run_full_report(args: argparse.Namespace) -> None:
                 rpc_data["vote_balance_sol"] = get_balance(args.rpc_url, args.vote_account)
             except Exception as exc:
                 print(_color(f"Warning: vote account balance fetch failed ({exc})", C.YELLOW))
+        if args.withdrawer:
+            try:
+                rpc_data["withdrawer_balance_sol"] = get_balance(args.rpc_url, args.withdrawer)
+            except Exception as exc:
+                print(_color(f"Warning: withdrawer balance fetch failed ({exc})", C.YELLOW))
         if args.identity:
             try:
                 rpc_data["block_production"] = get_block_production(args.rpc_url, args.identity)

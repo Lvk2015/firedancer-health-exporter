@@ -89,4 +89,8 @@ def make_rpc_gauges() -> types.SimpleNamespace:
             "firedancer_vote_latency_slots",
             "Voting latency in slots (absoluteSlot − lastVoteSlot)",
         ),
+        withdrawer_balance=Gauge(
+            "firedancer_withdrawer_balance_sol",
+            "Withdrawer account SOL balance",
+        ),
     )

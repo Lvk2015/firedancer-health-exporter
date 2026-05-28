@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "firedancer-health-exporter"
-version = "0.4.0"
+version = "0.4.1"
 description = "Prometheus exporter for Firedancer Solana validator — log-based and RPC metrics"
 readme = "README.md"
 license = { file = "LICENSE" }

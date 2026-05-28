@@ -65,6 +65,14 @@ def _level_credits_efficiency(pct: float) -> str:
     return "crit"
 
 
+def _level_withdrawer_balance(sol: float) -> str:
+    if sol > 0.01:
+        return "ok"
+    if sol >= 0.001:
+        return "warn"
+    return "crit"
+
+
 def _level_credits_per_slot(cps: float) -> str:
     if cps > 15.0:
         return "ok"
@@ -210,6 +218,23 @@ def render_full_report(
                     "vote_balance_info", "vote_balance_norm",
                 )
             )
+
+        # Withdrawer balance
+        if "withdrawer_balance_sol" in rpc_data:
+            wd_bal = rpc_data["withdrawer_balance_sol"]
+            wd_lv = _level_withdrawer_balance(wd_bal)
+            levels.append(wd_lv)
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "withdrawer_balance_label"),
+                    t(lang, "withdrawer_balance_val", val=wd_bal),
+                    wd_lv,
+                    f"withdrawer_balance_{wd_lv}",
+                    "withdrawer_balance_info", "withdrawer_balance_norm",
+                )
+            )
+            if wd_lv != "ok":
+                recs.append(t(lang, f"withdrawer_balance_rec_{wd_lv}"))
 
         # Block production (current epoch)
         if "block_production" in rpc_data:

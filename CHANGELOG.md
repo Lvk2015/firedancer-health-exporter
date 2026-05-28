@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-05-28
+
+### Added
+
+- **`--withdrawer <PUBKEY>`** option for `firedancer-exporter` and `firedancer-analyze` — optional withdrawer account public key.
+- **`firedancer_withdrawer_balance_sol`** Prometheus Gauge — SOL balance of the withdrawer account; only published when `--withdrawer` is passed to the exporter.
+- **Withdrawer Balance section in `firedancer-analyze --full`** — displays balance with emoji thresholds (> 0.01 SOL 🟢, 0.001–0.01 SOL 🟡, < 0.001 SOL 🔴); warns to top up for commission changes; full EN and RU i18n support.
+
 ## [0.4.0] - 2026-05-28
 
 ### Added

@@ -85,6 +85,16 @@ _STRINGS: dict[str, dict[str, str]] = {
         "metrics_errors_info": "What this is: failed attempts to submit metrics.",
         "metrics_errors_norm": "Normal: 0. Any errors may cause gaps in monitoring data.",
         "metrics_errors_rec_warn": "Check Prometheus connectivity and exporter configuration.",
+        # Withdrawer balance
+        "withdrawer_balance_label": "Withdrawer Balance",
+        "withdrawer_balance_val": "{val:.4f} SOL",
+        "withdrawer_balance_ok": "Sufficient balance for commission changes.",
+        "withdrawer_balance_warn": "Low balance — top up before changing commission.",
+        "withdrawer_balance_crit": "Critical: balance too low to change commission.",
+        "withdrawer_balance_info": "What this is: withdrawer account balance for managing validator settings.",
+        "withdrawer_balance_norm": "Normal: > 0.01 SOL 🟢, 0.001–0.01 SOL 🟡, < 0.001 SOL 🔴",
+        "withdrawer_balance_rec_warn": "Top up the withdrawer account to change commission when needed.",
+        "withdrawer_balance_rec_crit": "Top up the withdrawer account — commission changes will fail.",
         # Vote Credits (TVC)
         "vc_efficiency_label": "Credits Efficiency",
         "vc_efficiency_val": "{val:.1f}%",
@@ -198,6 +208,16 @@ _STRINGS: dict[str, dict[str, str]] = {
         "metrics_errors_info": "Что это: неудачные попытки отправить метрики.",
         "metrics_errors_norm": "Норма: 0. Любые ошибки могут вызвать пробелы в мониторинге.",
         "metrics_errors_rec_warn": "Проверьте связь с Prometheus и конфигурацию экспортера.",
+        # Withdrawer balance
+        "withdrawer_balance_label": "Баланс withdrawer",
+        "withdrawer_balance_val": "{val:.4f} SOL",
+        "withdrawer_balance_ok": "Достаточно для смены commission.",
+        "withdrawer_balance_warn": "Низкий баланс — пополните перед сменой commission.",
+        "withdrawer_balance_crit": "Критично: баланс слишком низкий для смены commission.",
+        "withdrawer_balance_info": "Что это: баланс withdrawer account для управления настройками валидатора.",
+        "withdrawer_balance_norm": "Норма: > 0.01 SOL 🟢, 0.001–0.01 SOL 🟡, < 0.001 SOL 🔴",
+        "withdrawer_balance_rec_warn": "Пополните для смены commission.",
+        "withdrawer_balance_rec_crit": "Пополните для смены commission.",
         # Vote Credits (TVC)
         "vc_efficiency_label": "Эффективность кредитов",
         "vc_efficiency_val": "{val:.1f}%",

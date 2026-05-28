@@ -19,7 +19,7 @@ from .metrics import (
     g_critical_errors,
     make_rpc_gauges,
 )
-from .rpc_client import compute_vote_credits_metrics, get_epoch_data, get_validator_data
+from .rpc_client import compute_vote_credits_metrics, get_balance, get_epoch_data, get_validator_data
 
 DEFAULT_PORT = 9100
 DEFAULT_SCRAPE_SECS = 60
@@ -56,7 +56,7 @@ def scrape_logs() -> None:
         g_log_scrape_duration.set(time.monotonic() - t0)
 
 
-def scrape_rpc(rpc_url: str, vote_account: str, identity: str, gauges: types.SimpleNamespace) -> None:
+def scrape_rpc(rpc_url: str, vote_account: str, identity: str, gauges: types.SimpleNamespace, withdrawer: str = "") -> None:
     t0 = time.monotonic()
     try:
         vdata = get_validator_data(rpc_url, vote_account, identity)
@@ -93,6 +93,11 @@ def scrape_rpc(rpc_url: str, vote_account: str, identity: str, gauges: types.Sim
             vc["missed_credits"],
         )
 
+        if withdrawer:
+            wd_bal = get_balance(rpc_url, withdrawer)
+            gauges.withdrawer_balance.set(wd_bal)
+            logging.info("rpc withdrawer | balance=%.4f SOL", wd_bal)
+
         gauges.last_scrape_ts.set(time.time())
     except Exception as exc:
         gauges._error_count += 1
@@ -108,11 +113,12 @@ def collector_loop(
     vote_account: str,
     identity: str,
     rpc_gauges: types.SimpleNamespace | None,
+    withdrawer: str = "",
 ) -> None:
     while True:
         scrape_logs()
         if rpc_url and rpc_gauges is not None:
-            scrape_rpc(rpc_url, vote_account, identity, rpc_gauges)
+            scrape_rpc(rpc_url, vote_account, identity, rpc_gauges, withdrawer)
         time.sleep(interval)
 
 
@@ -135,6 +141,8 @@ def build_parser() -> argparse.ArgumentParser:
                      help="Validator vote account public key")
     rpc.add_argument("--identity", default=DEFAULT_IDENTITY,
                      help="Validator identity public key")
+    rpc.add_argument("--withdrawer", default="", metavar="PUBKEY",
+                     help="Withdrawer account public key (optional, publishes firedancer_withdrawer_balance_sol)")
     return p
 
 
@@ -172,11 +180,11 @@ def main() -> None:
 
     scrape_logs()
     if rpc_url and rpc_gauges is not None:
-        scrape_rpc(rpc_url, args.vote_account, args.identity, rpc_gauges)
+        scrape_rpc(rpc_url, args.vote_account, args.identity, rpc_gauges, args.withdrawer)
 
     t = threading.Thread(
         target=collector_loop,
-        args=(args.interval, rpc_url, args.vote_account, args.identity, rpc_gauges),
+        args=(args.interval, rpc_url, args.vote_account, args.identity, rpc_gauges, args.withdrawer),
         daemon=True,
     )
     t.start()
