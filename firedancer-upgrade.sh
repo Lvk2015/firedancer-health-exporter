@@ -352,29 +352,23 @@ if [[ "$SVC_NOW" == "active" ]]; then
 fi
 ok "firedancer stopped"
 
-# ── 3.3 git stash ─────────────────────────────────────────────────────────────
-info "git stash in $FD_REPO..."
-if [[ ! -d "$FD_REPO/.git" ]]; then
-    die "$FD_REPO is not a git repository"
-fi
-cd "$FD_REPO" || die "Cannot cd to $FD_REPO"
-git stash
-GIT_STASH_RC=$?
-if [[ $GIT_STASH_RC -ne 0 ]]; then
-    die "git stash failed (rc=$GIT_STASH_RC)"
-fi
-ok "git stash done"
+# ── 3.3 Rename existing repo to backup ────────────────────────────────────────
+FD_BACKUP="/root/firedancer_backup_$(date +%F_%H%M%S)"
+info "Renaming $FD_REPO → $FD_BACKUP..."
+mv "$FD_REPO" "$FD_BACKUP" || die "Failed to rename $FD_REPO to $FD_BACKUP"
+ok "Backup directory: $FD_BACKUP"
 
-# ── 3.4 git fetch ─────────────────────────────────────────────────────────────
-info "git fetch --all --tags --force..."
-git fetch --all --tags --force
-GIT_FETCH_RC=$?
-if [[ $GIT_FETCH_RC -ne 0 ]]; then
-    die "git fetch failed (rc=$GIT_FETCH_RC)"
+# ── 3.4 Fresh git clone ───────────────────────────────────────────────────────
+info "Cloning firedancer → $FD_REPO..."
+git clone --recurse-submodules https://github.com/firedancer-io/firedancer.git "$FD_REPO"
+GIT_CLONE_RC=$?
+if [[ $GIT_CLONE_RC -ne 0 ]]; then
+    die "git clone failed (rc=$GIT_CLONE_RC)"
 fi
-ok "git fetch done"
+ok "git clone done"
 
 # ── 3.5 git checkout NEW ──────────────────────────────────────────────────────
+cd "$FD_REPO" || die "Cannot cd to $FD_REPO"
 info "git checkout $NEW..."
 git checkout "$NEW"
 GIT_CO_RC=$?
@@ -413,34 +407,17 @@ else
     ok "configure fini all done"
 fi
 
-# ── 3.9 make clean ────────────────────────────────────────────────────────────
-info "make clean..."
-make clean
+# ── 3.9 make distclean ───────────────────────────────────────────────────────
+info "make distclean..."
+make distclean
 MAKE_CLEAN_RC=$?
 if [[ $MAKE_CLEAN_RC -ne 0 ]]; then
-    die "make clean failed (rc=$MAKE_CLEAN_RC)"
+    die "make distclean failed (rc=$MAKE_CLEAN_RC)"
 fi
-ok "make clean done"
-
-# ── 3.9b Rebuild deps ─────────────────────────────────────────────────────────
-BUILD_LOG="/root/fd-build-$(date +%Y%m%d%H%M%S).log"
-info "Running deps.sh nuke..."
-./deps.sh nuke >> "$BUILD_LOG" 2>&1
-info "Running deps.sh +dev..."
-./deps.sh +dev >> "$BUILD_LOG" 2>&1
-DEPS_RC=$?
-if [[ $DEPS_RC -ne 0 ]]; then
-    warn "deps.sh +dev failed — trying apt-get --fix-missing and retry..."
-    apt-get update --fix-missing -y >> "$BUILD_LOG" 2>&1
-    ./deps.sh +dev >> "$BUILD_LOG" 2>&1
-    DEPS_RC=$?
-    if [[ $DEPS_RC -ne 0 ]]; then
-        die "deps.sh +dev failed"
-    fi
-fi
-ok "deps rebuilt"
+ok "make distclean done"
 
 # ── 3.10 Build fdctl (nohup make) ─────────────────────────────────────────────
+BUILD_LOG="/root/fd-build-$(date +%Y%m%d%H%M%S).log"
 NPROC=$(nproc)
 info "Starting build: nohup make -j $NPROC fdctl  (log: $BUILD_LOG)"
 nohup make -j "$NPROC" fdctl > "$BUILD_LOG" 2>&1 &
@@ -503,64 +480,6 @@ info "Found built binary: $NEW_FDCTL"
 cp "$NEW_FDCTL" "$FDCTL_BIN" || die "Failed to install new fdctl"
 chmod +x "$FDCTL_BIN"
 ok "New fdctl installed at $FDCTL_BIN"
-
-# ── 3.12b Fix config ──────────────────────────────────────────────────────────
-info "Applying config fixes to $CONFIG..."
-CONFIG_CHANGED=0
-if grep -qF 'dynamic_port_range = "8004-8029"' "$CONFIG"; then
-    sed -i 's/dynamic_port_range = "8004-8029"/dynamic_port_range = "8004-8030"/' "$CONFIG"
-    info "Config: dynamic_port_range updated 8004-8029 → 8004-8030"
-    CONFIG_CHANGED=1
-fi
-AWK_BUNDLE=$(awk '
-    /^\[tiles\.bundle\]/ { in_section=1; next }
-    /^\[/ { in_section=0 }
-    in_section && /enabled = true/ { found=1 }
-    END { print found+0 }
-' "$CONFIG")
-if [[ "$AWK_BUNDLE" == "1" ]]; then
-    awk '
-        /^\[tiles\.bundle\]/ { in_section=1; print; next }
-        /^\[/ { in_section=0 }
-        in_section && /enabled = true/ { sub(/enabled = true/, "enabled = false") }
-        { print }
-    ' "$CONFIG" > "${CONFIG}.tmp" && mv "${CONFIG}.tmp" "$CONFIG"
-    info "Config: [tiles.bundle] enabled = true → enabled = false"
-    CONFIG_CHANGED=1
-fi
-ok "Config fixes applied"
-
-# ── 3.12c Fix systemd unit ────────────────────────────────────────────────────
-info "Checking systemd unit for old 'configure init all' format..."
-UNIT_FILE_UPG=$(systemctl show firedancer -p FragmentPath 2>/dev/null | cut -d= -f2)
-UNIT_CHANGED=0
-if [[ -n "$UNIT_FILE_UPG" && -f "$UNIT_FILE_UPG" ]]; then
-    if grep -q "ExecStart=.*configure init all" "$UNIT_FILE_UPG"; then
-        info "Found 'configure init all' in ExecStart — rewriting to per-step ExecStartPre..."
-        EXECSTART_OLD=$(grep "ExecStart=.*configure init all" "$UNIT_FILE_UPG" | head -1)
-        FDCTL_PATH=$(echo "$EXECSTART_OLD" | sed 's/ExecStart=//' | awk '{print $1}')
-        CFG_PATH=$(echo "$EXECSTART_OLD" | grep -oP -- '--config \S+' | head -1)
-        cp "$UNIT_FILE_UPG" "${UNIT_FILE_UPG}.bak-upgrade-${OLD}"
-        awk -v bin="$FDCTL_PATH" -v cfg="$CFG_PATH" '
-            /ExecStart=.*configure init all/ {
-                print "ExecStartPre=" bin " configure init hugetlbfs " cfg
-                print "ExecStartPre=" bin " configure init ethtool-loopback " cfg
-                print "ExecStartPre=" bin " configure init ethtool-channels " cfg
-                print "ExecStartPre=" bin " configure init ethtool-offloads " cfg
-                next
-            }
-            { print }
-        ' "${UNIT_FILE_UPG}.bak-upgrade-${OLD}" > "$UNIT_FILE_UPG"
-        info "Systemd unit: replaced 'configure init all' ExecStart with 4 ExecStartPre steps"
-        UNIT_CHANGED=1
-    fi
-    systemctl daemon-reload
-    [[ $UNIT_CHANGED -eq 1 ]] && info "daemon-reload done"
-    ok "Systemd unit fixed"
-else
-    warn "Could not find systemd unit file — skipping unit fix"
-    ok "Systemd unit check skipped"
-fi
 
 # ── 3.13 Verify new version ───────────────────────────────────────────────────
 info "Verifying installed binary version..."
