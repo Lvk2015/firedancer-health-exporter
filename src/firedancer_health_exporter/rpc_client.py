@@ -43,7 +43,7 @@ def get_validator_data(rpc_url: str, vote_account: str, identity: str) -> dict:
         # skipRate is already 0–100; None means no blocks scheduled → treat as 0
         "skip_rate_percent": validator.get("skipRate") or 0.0,
         "credits": validator.get("epochCredits", 0),
-        "commission": validator["commission"],
+        "commission": validator.get("commissionBps", validator.get("commission", 0)) / 100,
         "delinquent": validator.get("delinquent", False),
         "version": validator.get("version", ""),
         "last_vote_slot": validator.get("lastVote"),
