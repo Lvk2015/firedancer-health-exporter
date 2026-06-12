@@ -23,7 +23,7 @@ _VALIDATOR_PAYLOAD = {
             "activatedStake": 100_000 * LAMPORTS_PER_SOL,
             "skipRate": 5.0,
             "epochCredits": 42000,
-            "commission": 5,
+            "commissionBps": 500,
         }
     ]
 }
@@ -47,7 +47,7 @@ def test_get_validator_data_success():
     assert result["active_stake_sol"] == pytest.approx(100_000.0)
     assert result["skip_rate_percent"] == pytest.approx(5.0)
     assert result["credits"] == 42000
-    assert result["commission"] == 5
+    assert result["commission"] == pytest.approx(5.0)
 
 
 def test_get_validator_data_not_found():
