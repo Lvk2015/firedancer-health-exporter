@@ -91,6 +91,17 @@ def _overall_level(levels: list[str]) -> str:
 
 # ── block builder ─────────────────────────────────────────────────────────────
 
+def _format_duration(seconds: float) -> str:
+    """Format seconds as 'Xd Yh Zm' (days omitted if zero)."""
+    seconds = int(seconds)
+    days, rem = divmod(seconds, 86400)
+    hours, rem = divmod(rem, 3600)
+    minutes, _ = divmod(rem, 60)
+    if days > 0:
+        return f"{days}d {hours}h {minutes}m"
+    return f"{hours}h {minutes}m"
+
+
 def _metric_block(
     lang: str,
     label: str,
@@ -302,11 +313,20 @@ def render_full_report(
         # Epoch progress
         if "epoch_data" in rpc_data:
             ed = rpc_data["epoch_data"]
-            remaining = ed["slots_in_epoch"] - ed["slot_index"]
+            remaining_slots = ed["slots_in_epoch"] - ed["slot_index"]
+            slot_start = ed["absolute_slot"] - ed["slot_index"]
+            slot_end = slot_start + ed["slots_in_epoch"]
+            avg_slot_secs = 0.4
+            elapsed_time = _format_duration(ed["slot_index"] * avg_slot_secs)
+            remaining_time = _format_duration(remaining_slots * avg_slot_secs)
             metric_sections.append(
                 _metric_block(
                     lang, t(lang, "epoch_label"),
-                    t(lang, "epoch_val", epoch=ed["epoch"], pct=ed["completed_percent"], remaining=remaining),
+                    t(lang, "epoch_val",
+                      epoch=ed["epoch"], pct=ed["completed_percent"],
+                      slot_start=slot_start, slot_end=slot_end,
+                      remaining=remaining_slots,
+                      elapsed_time=elapsed_time, remaining_time=remaining_time),
                     "ok",
                     "epoch_ok",
                     "epoch_info", "epoch_norm",

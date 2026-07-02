@@ -119,9 +119,9 @@ _STRINGS: dict[str, dict[str, str]] = {
         "vc_latency_val": "{val} slots",
         "vc_latency_info": "What this is: slots since the last confirmed vote transaction.",
         "epoch_label": "Epoch",
-        "epoch_val": "#{epoch} ({pct:.1f}% complete, {remaining:,} slots remaining)",
+        "epoch_val": "#{epoch} — slots [{slot_start:,}..{slot_end:,}) — {pct:.1f}% complete — {elapsed_time} elapsed, {remaining_time} remaining ({remaining:,} slots)",
         "epoch_ok": "Epoch progressing normally.",
-        "epoch_info": "What this is: current epoch number and progress toward the next epoch boundary.",
+        "epoch_info": "What this is: current epoch slot range and estimated time remaining (based on ~400ms/slot average — actual may vary).",
         "epoch_norm": "Informational metric — no action needed.",
         # Footer
         "recommendations_label": "RECOMMENDATIONS",
@@ -247,9 +247,9 @@ _STRINGS: dict[str, dict[str, str]] = {
         "vc_latency_val": "{val} слотов",
         "vc_latency_info": "Что это: количество слотов с момента последней vote-транзакции.",
         "epoch_label": "Эпоха",
-        "epoch_val": "#{epoch} ({pct:.1f}% завершено, осталось {remaining:,} слотов)",
+        "epoch_val": "#{epoch} — слоты [{slot_start:,}..{slot_end:,}) — {pct:.1f}% завершено — прошло {elapsed_time}, осталось {remaining_time} ({remaining:,} слотов)",
         "epoch_ok": "Прогресс эпохи в норме.",
-        "epoch_info": "Что это: номер текущей эпохи и прогресс до следующей.",
+        "epoch_info": "Что это: диапазон слотов текущей эпохи и оценка оставшегося времени (расчёт по ~400мс/слот в среднем — фактическое время может отличаться).",
         "epoch_norm": "Информационная метрика — действий не требует.",
         # Footer
         "recommendations_label": "РЕКОМЕНДАЦИИ",
