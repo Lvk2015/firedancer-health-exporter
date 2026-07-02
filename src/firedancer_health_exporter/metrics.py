@@ -61,6 +61,22 @@ def make_rpc_gauges() -> types.SimpleNamespace:
             "firedancer_epoch_completed_percent",
             "Percentage of current epoch completed (0–100)",
         ),
+        epoch_number=Gauge(
+            "firedancer_epoch_number",
+            "Current epoch number",
+        ),
+        epoch_slot_index=Gauge(
+            "firedancer_epoch_slot_index",
+            "Slot index within the current epoch",
+        ),
+        epoch_slots_total=Gauge(
+            "firedancer_epoch_slots_total",
+            "Total number of slots in the current epoch",
+        ),
+        epoch_remaining_slots=Gauge(
+            "firedancer_epoch_remaining_slots",
+            "Slots remaining until the epoch boundary",
+        ),
         scrape_duration=Gauge(
             "firedancer_exporter_rpc_scrape_duration_seconds",
             "Time taken to query Solana CLI for RPC metrics",

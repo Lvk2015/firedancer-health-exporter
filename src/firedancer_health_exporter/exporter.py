@@ -74,6 +74,10 @@ def scrape_rpc(rpc_url: str, vote_account: str, identity: str, gauges: types.Sim
 
         edata = get_epoch_data(rpc_url)
         gauges.epoch_completed.set(edata["completed_percent"])
+        gauges.epoch_number.set(edata["epoch"])
+        gauges.epoch_slot_index.set(edata["slot_index"])
+        gauges.epoch_slots_total.set(edata["slots_in_epoch"])
+        gauges.epoch_remaining_slots.set(edata["slots_in_epoch"] - edata["slot_index"])
         logging.info(
             "rpc epoch | epoch=%d completed=%.2f%%",
             edata["epoch"],
