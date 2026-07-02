@@ -118,6 +118,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "vc_latency_label": "Vote Latency",
         "vc_latency_val": "{val} slots",
         "vc_latency_info": "What this is: slots since the last confirmed vote transaction.",
+        "epoch_label": "Epoch",
+        "epoch_val": "#{epoch} ({pct:.1f}% complete, {remaining:,} slots remaining)",
+        "epoch_ok": "Epoch progressing normally.",
+        "epoch_info": "What this is: current epoch number and progress toward the next epoch boundary.",
+        "epoch_norm": "Informational metric — no action needed.",
         # Footer
         "recommendations_label": "RECOMMENDATIONS",
         "rec_all_ok": "Node is in excellent condition.",
@@ -241,6 +246,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "vc_latency_label": "Задержка голосования",
         "vc_latency_val": "{val} слотов",
         "vc_latency_info": "Что это: количество слотов с момента последней vote-транзакции.",
+        "epoch_label": "Эпоха",
+        "epoch_val": "#{epoch} ({pct:.1f}% завершено, осталось {remaining:,} слотов)",
+        "epoch_ok": "Прогресс эпохи в норме.",
+        "epoch_info": "Что это: номер текущей эпохи и прогресс до следующей.",
+        "epoch_norm": "Информационная метрика — действий не требует.",
         # Footer
         "recommendations_label": "РЕКОМЕНДАЦИИ",
         "rec_all_ok": "Нода в отличном состоянии.",

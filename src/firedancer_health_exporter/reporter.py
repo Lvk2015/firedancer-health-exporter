@@ -299,6 +299,20 @@ def render_full_report(
                     f"  ℹ {t(lang, 'vc_latency_info')}",
                 ])
 
+        # Epoch progress
+        if "epoch_data" in rpc_data:
+            ed = rpc_data["epoch_data"]
+            remaining = ed["slots_in_epoch"] - ed["slot_index"]
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "epoch_label"),
+                    t(lang, "epoch_val", epoch=ed["epoch"], pct=ed["completed_percent"], remaining=remaining),
+                    "ok",
+                    "epoch_ok",
+                    "epoch_info", "epoch_norm",
+                )
+            )
+
         # Version from rpc_data (if present)
         if not version and rpc_data.get("version"):
             version = rpc_data["version"]

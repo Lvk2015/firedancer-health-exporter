@@ -237,6 +237,7 @@ def _run_full_report(args: argparse.Namespace) -> None:
 
         try:
             edata = get_epoch_data(args.rpc_url)
+            rpc_data["epoch_data"] = edata
             rpc_data["vote_credits"] = compute_vote_credits_metrics(rpc_data, edata)
         except Exception as exc:
             print(_color(f"Warning: vote credits fetch failed ({exc})", C.YELLOW))
