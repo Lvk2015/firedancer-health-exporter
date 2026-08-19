@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "firedancer-health-exporter"
-version = "0.5.0"
+version = "0.6.0"
 description = "Prometheus exporter for Firedancer Solana validator — log-based and RPC metrics"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -50,7 +50,6 @@ testpaths = ["tests"]
 addopts   = "-v --tb=short"
 
 [tool.setuptools]
-# Needed for editable installs with older pip versions
 
 
 [tool.coverage.run]

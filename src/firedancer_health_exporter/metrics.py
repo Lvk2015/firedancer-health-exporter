@@ -109,4 +109,28 @@ def make_rpc_gauges() -> types.SimpleNamespace:
             "firedancer_withdrawer_balance_sol",
             "Withdrawer account SOL balance",
         ),
+        node_is_active=Gauge(
+            "solana_node_is_active",
+            "1 if the validator is not delinquent and has active stake, 0 otherwise",
+        ),
+        fee_rewards=Gauge(
+            "solana_validator_fee_rewards_sol",
+            "Vote account inflation reward for the most recently completed epoch, in SOL",
+        ),
+        epoch_income=Gauge(
+            "solana_validator_epoch_income_sol",
+            "Total validator income for the most recently completed epoch, in SOL",
+        ),
+        block_size_avg=Gauge(
+            "solana_validator_block_size_avg",
+            "Cluster-wide average transactions per block over the most recent performance sample (proxy, not filtered to this validator)",
+        ),
+        stake_account_balance=Gauge(
+            "solana_stake_account_balance_sol",
+            "Total balance of the configured stake account, in SOL",
+        ),
+        stake_account_delegated=Gauge(
+            "solana_stake_account_delegated_sol",
+            "Actively delegated stake in the configured stake account, in SOL",
+        ),
     )

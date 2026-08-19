@@ -81,6 +81,22 @@ def _level_credits_per_slot(cps: float) -> str:
     return "crit"
 
 
+def _level_node_active(is_active: bool) -> str:
+    return "ok" if is_active else "crit"
+
+
+def _level_fee_rewards(sol: float) -> str:
+    return "ok" if sol > 0 else "warn"
+
+
+def _level_stake_balance(sol: float) -> str:
+    return "ok" if sol > 0 else "warn"
+
+
+def _level_stake_delegated(sol: float) -> str:
+    return "ok" if sol > 0 else "warn"
+
+
 def _overall_level(levels: list[str]) -> str:
     if "crit" in levels:
         return "crit"
@@ -200,6 +216,23 @@ def render_full_report(
             if del_lv != "ok":
                 recs.append(t(lang, f"delinquent_rec_{del_lv}"))
 
+        # Node active status
+        if "is_active" in rpc_data:
+            is_active = rpc_data["is_active"]
+            active_lv = _level_node_active(is_active)
+            levels.append(active_lv)
+            active_val = t(lang, "node_active_val_yes" if is_active else "node_active_val_no")
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "node_active_label"),
+                    active_val, active_lv,
+                    f"node_active_{active_lv}",
+                    "node_active_info", "node_active_norm",
+                )
+            )
+            if active_lv != "ok":
+                recs.append(t(lang, f"node_active_rec_{active_lv}"))
+
         # Identity balance
         if "identity_balance_sol" in rpc_data:
             id_bal = rpc_data["identity_balance_sol"]
@@ -246,6 +279,38 @@ def render_full_report(
             )
             if wd_lv != "ok":
                 recs.append(t(lang, f"withdrawer_balance_rec_{wd_lv}"))
+
+        # Stake account
+        if "stake_account" in rpc_data:
+            sa = rpc_data["stake_account"]
+
+            bal_lv = _level_stake_balance(sa["total_balance_sol"])
+            levels.append(bal_lv)
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "stake_balance_label"),
+                    t(lang, "stake_balance_val", val=sa["total_balance_sol"]),
+                    bal_lv,
+                    f"stake_balance_{bal_lv}",
+                    "stake_balance_info", "stake_balance_norm",
+                )
+            )
+            if bal_lv != "ok":
+                recs.append(t(lang, f"stake_balance_rec_{bal_lv}"))
+
+            del_lv = _level_stake_delegated(sa["delegated_sol"])
+            levels.append(del_lv)
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "stake_delegated_label"),
+                    t(lang, "stake_delegated_val", val=sa["delegated_sol"]),
+                    del_lv,
+                    f"stake_delegated_{del_lv}",
+                    "stake_delegated_info", "stake_delegated_norm",
+                )
+            )
+            if del_lv != "ok":
+                recs.append(t(lang, f"stake_delegated_rec_{del_lv}"))
 
         # Block production (current epoch)
         if "block_production" in rpc_data:
@@ -310,6 +375,35 @@ def render_full_report(
                     f"  ℹ {t(lang, 'vc_latency_info')}",
                 ])
 
+        # Fee rewards (vote account inflation reward, most recently completed epoch)
+        if "fee_rewards_sol" in rpc_data:
+            fr = rpc_data["fee_rewards_sol"]
+            fr_lv = _level_fee_rewards(fr)
+            levels.append(fr_lv)
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "fee_rewards_label"),
+                    t(lang, "fee_rewards_val", val=fr),
+                    fr_lv,
+                    f"fee_rewards_{fr_lv}",
+                    "fee_rewards_info", "fee_rewards_norm",
+                )
+            )
+            if fr_lv != "ok":
+                recs.append(t(lang, f"fee_rewards_rec_{fr_lv}"))
+
+        # Epoch income (informational — currently same source as fee_rewards_sol)
+        if "epoch_income_sol" in rpc_data:
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "epoch_income_label"),
+                    t(lang, "epoch_income_val", val=rpc_data["epoch_income_sol"]),
+                    "ok",
+                    "epoch_income_ok",
+                    "epoch_income_info", "epoch_income_norm",
+                )
+            )
+
         # Epoch progress
         if "epoch_data" in rpc_data:
             ed = rpc_data["epoch_data"]
@@ -330,6 +424,18 @@ def render_full_report(
                     "ok",
                     "epoch_ok",
                     "epoch_info", "epoch_norm",
+                )
+            )
+
+        # Average block size (cluster-wide proxy)
+        if "block_size_avg" in rpc_data:
+            metric_sections.append(
+                _metric_block(
+                    lang, t(lang, "block_size_label"),
+                    t(lang, "block_size_val", val=rpc_data["block_size_avg"]),
+                    "ok",
+                    "block_size_ok",
+                    "block_size_info", "block_size_norm",
                 )
             )
 

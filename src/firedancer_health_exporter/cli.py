@@ -184,16 +184,26 @@ def _build_parser() -> argparse.ArgumentParser:
         metavar="PUBKEY",
         help="Withdrawer account public key (optional)",
     )
+    rpc.add_argument(
+        "--stake-account",
+        default="",
+        metavar="PUBKEY",
+        help="Stake account public key (optional)",
+    )
     return p
 
 
 def _run_full_report(args: argparse.Namespace) -> None:
     from .reporter import render_full_report
     from .rpc_client import (
+        compute_node_is_active,
         compute_vote_credits_metrics,
         get_balance,
         get_block_production,
+        get_block_size_avg,
         get_epoch_data,
+        get_inflation_reward,
+        get_stake_account,
         get_validator_data,
     )
 
@@ -235,12 +245,33 @@ def _run_full_report(args: argparse.Namespace) -> None:
             except Exception as exc:
                 print(_color(f"Warning: block production fetch failed ({exc})", C.YELLOW))
 
+        rpc_data["is_active"] = compute_node_is_active(rpc_data)
+
         try:
             edata = get_epoch_data(args.rpc_url)
             rpc_data["epoch_data"] = edata
             rpc_data["vote_credits"] = compute_vote_credits_metrics(rpc_data, edata)
+
+            if args.vote_account:
+                try:
+                    reward = get_inflation_reward(args.rpc_url, args.vote_account, edata["epoch"] - 1)
+                    rpc_data["fee_rewards_sol"] = reward["amount_sol"]
+                    rpc_data["epoch_income_sol"] = reward["amount_sol"]
+                except Exception as exc:
+                    print(_color(f"Warning: inflation reward fetch failed ({exc})", C.YELLOW))
         except Exception as exc:
             print(_color(f"Warning: vote credits fetch failed ({exc})", C.YELLOW))
+
+        try:
+            rpc_data["block_size_avg"] = get_block_size_avg(args.rpc_url)
+        except Exception as exc:
+            print(_color(f"Warning: block size fetch failed ({exc})", C.YELLOW))
+
+        if args.stake_account:
+            try:
+                rpc_data["stake_account"] = get_stake_account(args.rpc_url, args.stake_account)
+            except Exception as exc:
+                print(_color(f"Warning: stake account fetch failed ({exc})", C.YELLOW))
 
     report = render_full_report(
         lang=lang,

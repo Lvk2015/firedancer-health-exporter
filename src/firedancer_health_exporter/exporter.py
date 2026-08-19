@@ -19,7 +19,16 @@ from .metrics import (
     g_critical_errors,
     make_rpc_gauges,
 )
-from .rpc_client import compute_vote_credits_metrics, get_balance, get_epoch_data, get_validator_data
+from .rpc_client import (
+    compute_node_is_active,
+    compute_vote_credits_metrics,
+    get_balance,
+    get_block_size_avg,
+    get_epoch_data,
+    get_inflation_reward,
+    get_stake_account,
+    get_validator_data,
+)
 
 DEFAULT_PORT = 9100
 DEFAULT_SCRAPE_SECS = 60
@@ -56,7 +65,14 @@ def scrape_logs() -> None:
         g_log_scrape_duration.set(time.monotonic() - t0)
 
 
-def scrape_rpc(rpc_url: str, vote_account: str, identity: str, gauges: types.SimpleNamespace, withdrawer: str = "") -> None:
+def scrape_rpc(
+    rpc_url: str,
+    vote_account: str,
+    identity: str,
+    gauges: types.SimpleNamespace,
+    withdrawer: str = "",
+    stake_account: str = "",
+) -> None:
     t0 = time.monotonic()
     try:
         vdata = get_validator_data(rpc_url, vote_account, identity)
@@ -64,6 +80,7 @@ def scrape_rpc(rpc_url: str, vote_account: str, identity: str, gauges: types.Sim
         gauges.skip_rate.set(vdata["skip_rate_percent"])
         gauges.credits.set(vdata["credits"])
         gauges.commission.set(vdata["commission"])
+        gauges.node_is_active.set(1 if compute_node_is_active(vdata) else 0)
         logging.info(
             "rpc validator | stake=%.2f SOL skip=%.2f%% credits=%d commission=%d%%",
             vdata["active_stake_sol"],
@@ -97,10 +114,31 @@ def scrape_rpc(rpc_url: str, vote_account: str, identity: str, gauges: types.Sim
             vc["missed_credits"],
         )
 
+        reward = get_inflation_reward(rpc_url, vote_account, edata["epoch"] - 1)
+        gauges.fee_rewards.set(reward["amount_sol"])
+        gauges.epoch_income.set(reward["amount_sol"])
+        logging.info(
+            "rpc inflation_reward | epoch=%d amount=%.6f SOL",
+            edata["epoch"] - 1,
+            reward["amount_sol"],
+        )
+
+        gauges.block_size_avg.set(get_block_size_avg(rpc_url))
+
         if withdrawer:
             wd_bal = get_balance(rpc_url, withdrawer)
             gauges.withdrawer_balance.set(wd_bal)
             logging.info("rpc withdrawer | balance=%.4f SOL", wd_bal)
+
+        if stake_account:
+            sdata = get_stake_account(rpc_url, stake_account)
+            gauges.stake_account_balance.set(sdata["total_balance_sol"])
+            gauges.stake_account_delegated.set(sdata["delegated_sol"])
+            logging.info(
+                "rpc stake_account | balance=%.4f SOL delegated=%.4f SOL",
+                sdata["total_balance_sol"],
+                sdata["delegated_sol"],
+            )
 
         gauges.last_scrape_ts.set(time.time())
     except Exception as exc:
@@ -118,11 +156,12 @@ def collector_loop(
     identity: str,
     rpc_gauges: types.SimpleNamespace | None,
     withdrawer: str = "",
+    stake_account: str = "",
 ) -> None:
     while True:
         scrape_logs()
         if rpc_url and rpc_gauges is not None:
-            scrape_rpc(rpc_url, vote_account, identity, rpc_gauges, withdrawer)
+            scrape_rpc(rpc_url, vote_account, identity, rpc_gauges, withdrawer, stake_account)
         time.sleep(interval)
 
 
@@ -147,6 +186,8 @@ def build_parser() -> argparse.ArgumentParser:
                      help="Validator identity public key")
     rpc.add_argument("--withdrawer", default="", metavar="PUBKEY",
                      help="Withdrawer account public key (optional, publishes firedancer_withdrawer_balance_sol)")
+    rpc.add_argument("--stake-account", default="", metavar="PUBKEY",
+                     help="Stake account public key (optional, publishes solana_stake_account_balance_sol / _delegated_sol)")
     return p
 
 
@@ -184,11 +225,11 @@ def main() -> None:
 
     scrape_logs()
     if rpc_url and rpc_gauges is not None:
-        scrape_rpc(rpc_url, args.vote_account, args.identity, rpc_gauges, args.withdrawer)
+        scrape_rpc(rpc_url, args.vote_account, args.identity, rpc_gauges, args.withdrawer, args.stake_account)
 
     t = threading.Thread(
         target=collector_loop,
-        args=(args.interval, rpc_url, args.vote_account, args.identity, rpc_gauges, args.withdrawer),
+        args=(args.interval, rpc_url, args.vote_account, args.identity, rpc_gauges, args.withdrawer, args.stake_account),
         daemon=True,
     )
     t.start()
