@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-08-19
+
+### Fixed
+
+- **`fee_rewards` is now informational only**: no longer factored into overall report status or recommendations — a zero/missing reward for the previous epoch was triggering unnecessary warnings.
+- **Testnet note for `fee_rewards`/`epoch_income`**: EN/RU report text now explains that testnet always reports 0 inflation reward by design, so it isn't mistaken for an issue.
+
+### Added
+
+- Reporter tests covering the new metrics added in v0.6.0 (`tests/test_reporter.py`).
+
+## [0.6.0] - 2026-08-19
+
+### Added
+
+- **`solana_node_is_active`** Prometheus Gauge — 1 if the validator is not delinquent and has active stake, 0 otherwise.
+- **`solana_validator_fee_rewards_sol`** / **`solana_validator_epoch_income_sol`** Prometheus Gauges — vote account inflation reward (`getInflationReward`) for the most recently completed epoch, in SOL.
+- **`solana_validator_block_size_avg`** Prometheus Gauge — cluster-wide average transactions per block over the most recent performance sample (`getRecentPerformanceSamples`); a proxy, not filtered to this validator.
+- **`--stake-account <PUBKEY>`** option for `firedancer-exporter` and `firedancer-analyze` — optional stake account public key.
+- **`solana_stake_account_balance_sol`** / **`solana_stake_account_delegated_sol`** Prometheus Gauges — total and actively delegated balance of the configured stake account; only published when `--stake-account` is passed.
+- **New report sections in `firedancer-analyze --full`** for node active status, fee rewards, epoch income, block size average, and stake account balance/delegation — full EN and RU i18n support.
+- `rpc_client._rpc_call()` — direct JSON-RPC POST helper for `getInflationReward` and `getRecentPerformanceSamples`, which have no equivalent `solana` CLI subcommand.
+- `rpc_client.compute_node_is_active()`, `get_inflation_reward()`, `get_block_size_avg()`, `get_stake_account()`.
+
 ## [0.4.1] - 2026-05-28
 
 ### Added
@@ -95,7 +119,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `src/` layout with clean module separation: `metrics`, `log_parser`, `rpc_client`, `exporter`, `cli`
 - Full test suite (pytest) with coverage for log parser and RPC client
 
-[Unreleased]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.6.0...v0.6.1
+[0.6.0]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.4.1...v0.6.0
 [0.4.0]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/Lvk2015/firedancer-health-exporter/compare/v0.3.0...v0.3.1
