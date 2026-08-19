@@ -376,10 +376,10 @@ def render_full_report(
                 ])
 
         # Fee rewards (vote account inflation reward, most recently completed epoch)
+        # Informational only — not factored into overall level or recommendations.
         if "fee_rewards_sol" in rpc_data:
             fr = rpc_data["fee_rewards_sol"]
             fr_lv = _level_fee_rewards(fr)
-            levels.append(fr_lv)
             metric_sections.append(
                 _metric_block(
                     lang, t(lang, "fee_rewards_label"),
@@ -389,8 +389,6 @@ def render_full_report(
                     "fee_rewards_info", "fee_rewards_norm",
                 )
             )
-            if fr_lv != "ok":
-                recs.append(t(lang, f"fee_rewards_rec_{fr_lv}"))
 
         # Epoch income (informational — currently same source as fee_rewards_sol)
         if "epoch_income_sol" in rpc_data:
