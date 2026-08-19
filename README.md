@@ -100,6 +100,22 @@ firedancer-analyze
 
 ---
 
+## Mainnet Usage
+
+The exporter works on mainnet the same way it does on testnet or devnet — just point `--rpc-url` at a mainnet endpoint:
+
+```bash
+firedancer-exporter \
+  --enable-rpc-metrics \
+  --rpc-url https://api.mainnet-beta.solana.com \
+  --vote-account <YOUR_VOTE_PUBKEY> \
+  --identity  <YOUR_IDENTITY_PUBKEY>
+```
+
+`fee_rewards_sol` and `epoch_income_sol` (vote account inflation reward for the most recently completed epoch) will report real, non-zero values on mainnet once your validator has completed at least one epoch with rewards. On testnet, inflation rewards are always `0` by design — that's expected testnet behavior, not a sign of a problem with the exporter or the validator.
+
+---
+
 ## Metrics
 
 ### Log-based (always active)
