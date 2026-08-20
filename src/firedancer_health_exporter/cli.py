@@ -273,11 +273,14 @@ def _run_full_report(args: argparse.Namespace) -> None:
             except Exception as exc:
                 print(_color(f"Warning: stake account fetch failed ({exc})", C.YELLOW))
 
+    from . import __version__
+
     report = render_full_report(
         lang=lang,
         log_data=log_data,
         rpc_data=rpc_data,
         identity=args.identity or args.vote_account,
+        exporter_version=__version__,
     )
     print(report)
 

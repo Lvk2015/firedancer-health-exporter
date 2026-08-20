@@ -145,6 +145,7 @@ def render_full_report(
     rpc_data: dict | None,
     identity: str = "",
     version: str = "",
+    exporter_version: str = "",
 ) -> str:
     out: list[str] = []
     levels: list[str] = []
@@ -484,7 +485,8 @@ def render_full_report(
     if identity:
         id_part = f"{identity[:8]}..."
         ver_part = f" | v{version}" if version else ""
-        out.append(f"  {id_part}{ver_part}")
+        exp_part = f" | exporter v{exporter_version}" if exporter_version else ""
+        out.append(f"  {id_part}{ver_part}{exp_part}")
     out.append(_SEP_HEAVY)
     out.append("")
     out.append(f"  {EMOJI[overall]} {t(lang, f'header_overall_{overall}')}")

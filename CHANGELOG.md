@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-08-20
+
+### Added
+
+- **Exporter version in report header**: `firedancer-analyze --full` now shows the exporter's own version (`exporter vX.Y.Z`) next to the node version in the report header.
+
 ## [0.6.1] - 2026-08-19
 
 ### Fixed
