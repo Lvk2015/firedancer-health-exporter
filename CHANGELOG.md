@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-09-03
+
+### Added
+
+- **`--log-window` CLI flag**: both `firedancer-exporter` and `firedancer-analyze` now accept `--log-window HOURS` (default: 24) to control how many hours of journald logs are fetched per scrape/run, instead of always hardcoding 24h.
+
 ## [0.6.2] - 2026-08-20
 
 ### Added

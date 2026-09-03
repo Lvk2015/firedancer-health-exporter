@@ -10,7 +10,7 @@ Reads `journalctl -u firedancer` and optionally queries the Solana CLI to expose
 
 ## Features
 
-- **Log-based metrics** — TooFewTicks warnings, metrics-submit errors, ERROR/PANIC/FATAL events, all scoped to the last 24 hours
+- **Log-based metrics** — TooFewTicks warnings, metrics-submit errors, ERROR/PANIC/FATAL events, all scoped to a configurable log window (default: last 24 hours, `--log-window`)
 - **RPC metrics** (optional) — active stake, skip rate, epoch credits, commission, epoch progress via the Solana CLI
 - **CLI diagnostic tool** — colored one-shot terminal report with per-hour TooFewTicks histogram
 - **systemd service** with security hardening (NoNewPrivileges, ProtectSystem, PrivateTmp)
@@ -93,6 +93,7 @@ firedancer-analyze
 |---|---|---|
 | `--port` | `9100` | HTTP port to expose `/metrics` on |
 | `--interval` | `60` | Scrape interval in seconds |
+| `--log-window` | `24` | Hours of journald logs to fetch per scrape |
 | `--enable-rpc-metrics` | off | Enable Solana CLI / RPC metrics |
 | `--rpc-url` | `http://127.0.0.1:8899` | Solana RPC endpoint |
 | `--vote-account` | — | Validator vote account public key |
@@ -122,9 +123,9 @@ firedancer-exporter \
 
 | Metric | Type | Description |
 |---|---|---|
-| `firedancer_too_few_ticks_total` | Gauge | TooFewTicks warnings in last 24 h |
-| `firedancer_metrics_errors_total` | Gauge | `metrics submit error` lines in last 24 h |
-| `firedancer_critical_errors_total` | Gauge | ERROR/PANIC/FATAL events in last 24 h (TooFewTicks lines excluded) |
+| `firedancer_too_few_ticks_total` | Gauge | TooFewTicks warnings in the configured log window (default 24 h, `--log-window`) |
+| `firedancer_metrics_errors_total` | Gauge | `metrics submit error` lines in the configured log window |
+| `firedancer_critical_errors_total` | Gauge | ERROR/PANIC/FATAL events in the configured log window (TooFewTicks lines excluded) |
 | `firedancer_log_lines_total` | Gauge | Total log lines collected |
 | `firedancer_exporter_log_scrape_duration_seconds` | Gauge | Time to collect and parse logs |
 | `firedancer_exporter_log_scrape_errors_total` | Gauge | Failed log-scrape attempts since start |

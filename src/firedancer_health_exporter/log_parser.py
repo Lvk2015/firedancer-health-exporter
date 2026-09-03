@@ -12,9 +12,9 @@ RE_METRICS = re.compile(r"metrics\s+submit\s+error", re.IGNORECASE)
 RE_SEVERITY = re.compile(r"\b(ERROR|PANIC|FATAL)\b")
 
 
-def fetch_logs() -> list[str]:
+def fetch_logs(hours: int = LOG_WINDOW_HOURS) -> list[str]:
     since = (
-        datetime.now(timezone.utc) - timedelta(hours=LOG_WINDOW_HOURS)
+        datetime.now(timezone.utc) - timedelta(hours=hours)
     ).strftime("%Y-%m-%d %H:%M:%S")
     result = subprocess.run(
         ["journalctl", "-u", JOURNALD_UNIT, "--since", since, "--no-pager", "-o", "short-iso"],

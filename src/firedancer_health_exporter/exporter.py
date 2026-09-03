@@ -35,15 +35,16 @@ DEFAULT_SCRAPE_SECS = 60
 DEFAULT_RPC_URL = "http://127.0.0.1:8899"
 DEFAULT_VOTE_ACCOUNT = ""
 DEFAULT_IDENTITY = ""
+DEFAULT_LOG_WINDOW_HOURS = 24
 
 _log_errors = 0
 
 
-def scrape_logs() -> None:
+def scrape_logs(log_window_hours: int = DEFAULT_LOG_WINDOW_HOURS) -> None:
     global _log_errors
     t0 = time.monotonic()
     try:
-        lines = fetch_logs()
+        lines = fetch_logs(log_window_hours)
         data = parse_logs(lines)
         g_too_few_ticks.set(data["too_few_ticks"])
         g_metrics_errors.set(data["metrics_errors"])
@@ -157,9 +158,10 @@ def collector_loop(
     rpc_gauges: types.SimpleNamespace | None,
     withdrawer: str = "",
     stake_account: str = "",
+    log_window_hours: int = DEFAULT_LOG_WINDOW_HOURS,
 ) -> None:
     while True:
-        scrape_logs()
+        scrape_logs(log_window_hours)
         if rpc_url and rpc_gauges is not None:
             scrape_rpc(rpc_url, vote_account, identity, rpc_gauges, withdrawer, stake_account)
         time.sleep(interval)
@@ -174,6 +176,8 @@ def build_parser() -> argparse.ArgumentParser:
                    help="HTTP port to expose /metrics on")
     p.add_argument("--interval", type=int, default=DEFAULT_SCRAPE_SECS,
                    help="Scrape interval in seconds")
+    p.add_argument("--log-window", type=int, default=DEFAULT_LOG_WINDOW_HOURS, metavar="HOURS",
+                   help="How many hours of journald logs to fetch per scrape")
 
     rpc = p.add_argument_group("RPC metrics (disabled by default)")
     rpc.add_argument("--enable-rpc-metrics", action="store_true",
@@ -200,6 +204,9 @@ def main() -> None:
     if args.interval < 10:
         parser.error(f"--interval must be >= 10 seconds (got {args.interval})")
 
+    if args.log_window < 1:
+        parser.error(f"--log-window must be >= 1 hour (got {args.log_window})")
+
     if args.enable_rpc_metrics:
         if not args.vote_account:
             parser.error("--vote-account is required when --enable-rpc-metrics is set")
@@ -223,13 +230,13 @@ def main() -> None:
 
     start_http_server(args.port)
 
-    scrape_logs()
+    scrape_logs(args.log_window)
     if rpc_url and rpc_gauges is not None:
         scrape_rpc(rpc_url, args.vote_account, args.identity, rpc_gauges, args.withdrawer, args.stake_account)
 
     t = threading.Thread(
         target=collector_loop,
-        args=(args.interval, rpc_url, args.vote_account, args.identity, rpc_gauges, args.withdrawer, args.stake_account),
+        args=(args.interval, rpc_url, args.vote_account, args.identity, rpc_gauges, args.withdrawer, args.stake_account, args.log_window),
         daemon=True,
     )
     t.start()

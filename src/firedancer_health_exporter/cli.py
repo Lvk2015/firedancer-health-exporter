@@ -33,8 +33,8 @@ def _color(text: str, code: str) -> str:
     return text if _no_color() else f"{code}{text}{C.RESET}"
 
 
-def fetch_logs() -> list[str]:
-    since = (datetime.now(timezone.utc) - timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S")
+def fetch_logs(hours: int = 24) -> list[str]:
+    since = (datetime.now(timezone.utc) - timedelta(hours=hours)).strftime("%Y-%m-%d %H:%M:%S")
     cmd = ["journalctl", "-u", "firedancer", "--since", since, "--no-pager", "-o", "short-iso"]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -93,11 +93,11 @@ def render_histogram(by_hour: dict[str, int], width: int = 40) -> str:
     return "\n".join(rows)
 
 
-def print_report(data: dict) -> None:
+def print_report(data: dict, log_window: int = 24) -> None:
     sep = _color("=" * 60, C.DIM)
     print()
     print(sep)
-    print(_color("  FIREDANCER LOG ANALYSIS — LAST 24 HOURS", C.BOLD + C.CYAN))
+    print(_color(f"  FIREDANCER LOG ANALYSIS — LAST {log_window} HOURS", C.BOLD + C.CYAN))
     print(sep)
     print(f"\n  {_color('Total log lines:', C.BOLD)} {data['total']}")
 
@@ -160,6 +160,13 @@ def _build_parser() -> argparse.ArgumentParser:
         metavar="LANG",
         help="Report language: en or ru (default: en)",
     )
+    p.add_argument(
+        "--log-window",
+        type=int,
+        default=24,
+        metavar="HOURS",
+        help="How many hours of journald logs to fetch",
+    )
     rpc = p.add_argument_group("RPC metrics (used with --full)")
     rpc.add_argument(
         "--rpc-url",
@@ -209,8 +216,8 @@ def _run_full_report(args: argparse.Namespace) -> None:
 
     lang = args.lang
 
-    print(_color("Fetching Firedancer logs (last 24 h)…", C.DIM))
-    lines = fetch_logs()
+    print(_color(f"Fetching Firedancer logs (last {args.log_window} h)…", C.DIM))
+    lines = fetch_logs(args.log_window)
     if lines:
         log_data = parse_logs(lines)
     else:
@@ -281,6 +288,7 @@ def _run_full_report(args: argparse.Namespace) -> None:
         rpc_data=rpc_data,
         identity=args.identity or args.vote_account,
         exporter_version=__version__,
+        log_window_hours=args.log_window,
     )
     print(report)
 
@@ -289,13 +297,16 @@ def main() -> None:
     parser = _build_parser()
     args = parser.parse_args()
 
+    if args.log_window < 1:
+        parser.error(f"--log-window must be >= 1 hour (got {args.log_window})")
+
     if args.full:
         _run_full_report(args)
     else:
-        print(_color("Fetching Firedancer logs (last 24 h)…", C.DIM))
-        lines = fetch_logs()
+        print(_color(f"Fetching Firedancer logs (last {args.log_window} h)…", C.DIM))
+        lines = fetch_logs(args.log_window)
         if not lines:
-            print(_color("No Firedancer log entries found in the last 24 hours.", C.YELLOW))
+            print(_color(f"No Firedancer log entries found in the last {args.log_window} hours.", C.YELLOW))
             sys.exit(0)
         data = parse_logs(lines)
-        print_report(data)
+        print_report(data, args.log_window)

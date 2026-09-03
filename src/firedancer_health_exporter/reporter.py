@@ -146,6 +146,7 @@ def render_full_report(
     identity: str = "",
     version: str = "",
     exporter_version: str = "",
+    log_window_hours: int = 24,
 ) -> str:
     out: list[str] = []
     levels: list[str] = []
@@ -446,13 +447,13 @@ def render_full_report(
 
     # ── Log metrics ───────────────────────────────────────────────────────────
     tft = log_data.get("too_few_ticks", 0)
-    tft_per_hour = tft / 24
+    tft_per_hour = tft / log_window_hours
     tft_lv = _level_too_few_ticks(tft_per_hour)
     levels.append(tft_lv)
     metric_sections.append(
         _metric_block(
             lang, t(lang, "too_few_ticks_label"),
-            t(lang, "too_few_ticks_val", val=tft, per_hour=tft_per_hour),
+            t(lang, "too_few_ticks_val", val=tft, per_hour=tft_per_hour, window=log_window_hours),
             tft_lv,
             f"too_few_ticks_{tft_lv}",
             "too_few_ticks_info", "too_few_ticks_norm",

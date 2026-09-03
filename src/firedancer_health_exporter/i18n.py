@@ -34,7 +34,7 @@ _STRINGS: dict[str, dict[str, str]] = {
         "commission_rec_warn": "Consider lowering commission to 0% to meet SFDP requirements.",
         # TooFewTicks
         "too_few_ticks_label": "TooFewTicks",
-        "too_few_ticks_val": "{val:,} total 24h (~{per_hour:.0f}/hr)",
+        "too_few_ticks_val": "{val:,} total {window}h (~{per_hour:.0f}/hr)",
         "too_few_ticks_ok": "No block quality issues from other validators.",
         "too_few_ticks_warn": "Elevated rate of blocks with quality issues — monitor.",
         "too_few_ticks_crit": "High rate of malformed blocks from the network.",
@@ -205,7 +205,7 @@ _STRINGS: dict[str, dict[str, str]] = {
         "commission_rec_warn": "Рассмотрите снижение комиссии до 0% для соответствия SFDP.",
         # TooFewTicks
         "too_few_ticks_label": "TooFewTicks",
-        "too_few_ticks_val": "{val:,} за 24ч (~{per_hour:.0f}/час)",
+        "too_few_ticks_val": "{val:,} за {window}ч (~{per_hour:.0f}/час)",
         "too_few_ticks_ok": "Проблем с качеством блоков от других валидаторов нет.",
         "too_few_ticks_warn": "Повышенная частота блоков с ошибками — следите за показателем.",
         "too_few_ticks_crit": "Высокая частота некорректных блоков от сети.",
